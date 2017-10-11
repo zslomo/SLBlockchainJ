@@ -1,0 +1,17 @@
+{
+  "hints": [],
+  "groups": [
+    {
+      "sourceType": "science.bintan.blockchain.entity.BlockchainProperties",
+      "name": "blockchain",
+      "type": "science.bintan.blockchain.entity.BlockchainProperties"
+    }
+  ],
+  "properties": [
+    {
+      "sourceType": "science.bintan.blockchain.entity.BlockchainProperties",
+      "name": "blockchain.bc-infos",
+      "type": "java.util.List<science.bintan.blockchain.entity.BlockchainProperties.BcInfo>"
+    }
+  ]
+}
