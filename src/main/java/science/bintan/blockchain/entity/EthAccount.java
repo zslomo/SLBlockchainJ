@@ -24,5 +24,5 @@ public class EthAccount {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private String errorMassege;
+    private String errorMessage;
 }

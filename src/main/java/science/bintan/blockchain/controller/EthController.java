@@ -3,11 +3,10 @@ package science.bintan.blockchain.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import science.bintan.blockchain.entity.Block;
 import science.bintan.blockchain.entity.EthAccount;
 import science.bintan.blockchain.entity.User;
 import science.bintan.blockchain.service.EthService;
-import science.bintan.blockchain.utils.EasyReqBody;
+import science.bintan.blockchain.utils.SimpleReqBody;
 /**
  * Created by lomo on 2017/10/11.
  */
@@ -20,7 +19,7 @@ public class EthController {
     @CrossOrigin
     @RequestMapping(value = {"/blockByNumber",}, method = RequestMethod.POST)
     @ResponseBody
-    public String getBlockByNumber(@RequestBody EasyReqBody body) {
+    public String getBlockByNumber(@RequestBody SimpleReqBody body) {
         return ethService.getBlockByNumber(body.getNumber());
     }
 
@@ -34,7 +33,7 @@ public class EthController {
     @CrossOrigin
     @RequestMapping(value = {"/newAccount",}, method = RequestMethod.GET)
     @ResponseBody
-    public EthAccount personalNewAccount(@RequestBody EasyReqBody body){
+    public EthAccount personalNewAccount(@RequestBody SimpleReqBody body){
         User user =new User();
         user.setUsername(body.getUsername());
         return ethService.newAccount(body.getPassword(),user);

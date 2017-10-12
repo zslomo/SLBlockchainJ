@@ -10,22 +10,32 @@ import java.util.List;
  * Created by lomo on 2017/10/11.
  */
 public interface EthService {
+    //miner
+    String minerStart(int threads);
+    String minerStop();
+    String getMiningStatus();
 
     //account
     EthAccount newAccount(String password, User user);
     String unlockEthAccount(String addr,String password);
     List<EthAccount> getEthAccount();
-    int getBalance(String addr);
+    String getBalance(String addr);
 
     //block
     String getBlockByNumber(int number);
     String getBlockByHash(String hash);
     String getCurrentBlock();
-    int getblockNumber();
+    String getblockNumber();
 
     //transaction
+    String sendTansaction(String fromAddr,String fromPasswd,String toAddr);
     List<EthTransaction> getAllEthTransaction();
     List<EthTransaction> getEthTransactionBySender(String address);
     List<EthTransaction> getEthTransactionByreceiver(String address);
+
+    //filter
+    String setNewBlocFilter();
+    String setNewPendingTransactionFilter();
+    String getFilterChanges(String addr);
 
 }

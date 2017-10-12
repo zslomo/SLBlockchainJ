@@ -55,7 +55,7 @@ public class EthJsonRPC {
 
                 JsonNode jsonNode = mapper.readTree(blockResultBody);
 
-                if(jsonNode.get("error") != null) return jsonNode.get("error").toString();
+                if(jsonNode.get("error") != null) return "#"+jsonNode.get("error").toString();
 
                 return jsonNode.get("result").toString();
             }
@@ -63,6 +63,52 @@ public class EthJsonRPC {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        return "error";
+        return "#error";
     }
+
+    public static String JsonRPCTransaction(String fromAddr,String toAddr,String gas,String gasPrice,String value,String data,String url){
+
+        ObjectMapper mapper = new ObjectMapper();
+
+
+        Map<String,String> methodParams = new HashMap<String,String>();
+        methodParams.put("from",fromAddr);
+        methodParams.put("to",toAddr);
+        methodParams.put("gas",gas);
+        methodParams.put("gasPrice",gasPrice);
+        methodParams.put("value",value);
+        methodParams.put("data",data);
+
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("jsonrpc", "2.0");
+        params.put("method", "eth_sendTransaction");
+        params.put("params", methodParams);
+        params.put("id",1);
+
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String requsetJson = mapper.writeValueAsString(params);
+            HttpEntity<String> request = new HttpEntity<String>(requsetJson, headers);
+
+            ResponseEntity<String> blockResult = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+            String blockResultBody = blockResult.getBody();
+            if (blockResult.getStatusCode() == HttpStatus.OK) {
+
+                JsonNode jsonNode = mapper.readTree(blockResultBody);
+
+                if(jsonNode.get("error") != null) return "#"+jsonNode.get("error").toString();
+
+                return jsonNode.get("result").toString();
+            }
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return "#error";
+    }
+
 }
