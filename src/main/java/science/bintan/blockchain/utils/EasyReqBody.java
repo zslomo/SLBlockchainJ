@@ -10,4 +10,6 @@ public class EasyReqBody {
     private String address;
     private int number;
     private String hash;
+    private String password;
+    private String username;
 }

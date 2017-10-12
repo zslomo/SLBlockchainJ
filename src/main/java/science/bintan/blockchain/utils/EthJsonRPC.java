@@ -3,6 +3,7 @@ package science.bintan.blockchain.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
@@ -18,11 +19,14 @@ import java.util.Map;
 @EnableConfigurationProperties({BlockchainProperties.class})
 public class EthJsonRPC {
 
-    /*eth 接口中 如果有true false 等不能加引号的参数很麻烦
+    /*
+    eth 接口中 如果有true false不能加引号的参数很麻烦
     此函数进行去引号处理
     */
     private static String myJsonFormat(String requsetJson){
-        return requsetJson.replace("\"true\"","true");
+        return requsetJson
+                .replace("\"true\"","true")
+                .replace("\"false\"","false");
     }
 
     public static String JsonRPC(String method, String[] methodParams, String id, String url){
@@ -48,7 +52,10 @@ public class EthJsonRPC {
             ResponseEntity<String> blockResult = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
             String blockResultBody = blockResult.getBody();
             if (blockResult.getStatusCode() == HttpStatus.OK) {
+
                 JsonNode jsonNode = mapper.readTree(blockResultBody);
+
+                if(jsonNode.get("error") != null) return jsonNode.get("error").toString();
 
                 return jsonNode.get("result").toString();
             }

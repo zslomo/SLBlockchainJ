@@ -1,18 +1,16 @@
 package science.bintan.blockchain.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import science.bintan.blockchain.entity.BlockchainProperties;
+import science.bintan.blockchain.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import science.bintan.blockchain.entity.Block;
-import science.bintan.blockchain.entity.EthAccount;
-import science.bintan.blockchain.entity.EthTransaction;
 import science.bintan.blockchain.utils.EthJsonRPC;
 
 import java.util.HashMap;
@@ -26,32 +24,70 @@ import java.util.Map;
 public class EthServiceImpl implements EthService {
     private static final Logger logger = LoggerFactory.getLogger(EthServiceImpl.class);
 
-    //@Autowired
-    //private BlockchainProperties blockchainProperties;
+    @Autowired
+    private BlockchainProperties blockchainProperties;
 
-    //List<BlockchainProperties.BcInfo> bcInfos = blockchainProperties.getBcInfos();
-    //BlockchainProperties.BcInfo bcInfo = bcInfos.get(0);
+    @Autowired
+    private EthAccountService ethAccountService;
 
-    private static final String bcUrl ="http://101.132.144.50:8545";
+    @Autowired
+    private UserService userService;
+
+    private String getBcUrl(){
+        List<BlockchainProperties.BcInfo> bcInfos = blockchainProperties.getBcInfos();
+        BlockchainProperties.BcInfo bcInfo = bcInfos.get(0);
+        return bcInfo.getClientUrl();
+    }
+
+
+    //private static final String bcUrl ="http://101.132.144.50:8545";
 
     @Override
-    public Boolean unlockEthAccount() {
-        return null;
+    public EthAccount newAccount(String password,User user) {
+
+        String[] methodParams = { password };
+
+        String addr =  EthJsonRPC.JsonRPC("personal_newAccount",methodParams,"1",getBcUrl());
+
+        EthAccount ethAccount = new EthAccount();
+        ethAccount.setAddress(addr);
+        ethAccount.setPassword(password);
+        try {
+            ethAccountService.save(ethAccount);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+        }
+        try {
+            user.getEthAccounts().add(ethAccount);
+            userService.save(user);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+        }
+
+        return ethAccount;
+
     }
 
     @Override
-    public EthAccount getEthAccount() {
+    public String unlockEthAccount(String addr,String password) {
+        String[] methodParams = { addr, password};
+
+        return EthJsonRPC.JsonRPC("personal_unlockAccount",methodParams,"1",getBcUrl());
+
+
+    }
+
+    @Override
+    public List<EthAccount> getEthAccount() {
         return null;
     }
 
     @Override
     public int getBalance(String addr) {
 
-        ObjectMapper mapper = new ObjectMapper();
+        String[] methodParams = { addr ,"latest"};
 
-        String[] methodParams = {addr,"true"};
-
-        String balanceResultBody = EthJsonRPC.JsonRPC("eth_getBlockByNumber",methodParams,"1",bcUrl);
+        String balanceResultBody = EthJsonRPC.JsonRPC("eth_getBalance",methodParams,"1",getBcUrl());
 
         return Integer.parseInt(balanceResultBody);
     }
@@ -59,53 +95,51 @@ public class EthServiceImpl implements EthService {
     @Override
     public String getBlockByNumber(int number) {
 
-        Block blockRet = new Block();
+        /*Block blockRet = new Block();
 
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();*/
 
         String[] methodParams = {"0x"+Integer.toHexString(number),"true"};
 
-        String blockResultBody = EthJsonRPC.JsonRPC("eth_getBlockByNumber",methodParams,"1",bcUrl);
-        try {
+       return EthJsonRPC.JsonRPC("eth_getBlockByNumber",methodParams,"1",getBcUrl());
+        /*try {
             //blockRet = mapper.readValue(blockResultBody, Block.class);
         }catch (Exception e) {
             logger.error(e.getMessage());
-        }
-        return blockResultBody;
+        }*/
+
     }
 
     @Override
-    public Block getBlockByHash(String hash) {
-        Block blockRet = new Block();
-
-        ObjectMapper mapper = new ObjectMapper();
+    public String getBlockByHash(String hash) {
 
         String[] methodParams = { hash ,"true"};
 
-        String blockResultBody = EthJsonRPC.JsonRPC("eth_getBlockByHash",methodParams,"1",bcUrl);
-        try {
-            blockRet = mapper.readValue(blockResultBody, Block.class);
-        }catch (Exception e){
-            logger.error(e.getMessage());
-        }
-        return blockRet;
+        return EthJsonRPC.JsonRPC("eth_getBlockByHash",methodParams,"1",getBcUrl());
+
     }
 
     @Override
-    public Block getCurrentBlock() {
-        Block blockRet = new Block();
-
-        ObjectMapper mapper = new ObjectMapper();
+    public String getCurrentBlock() {
 
         String[] methodParams = {"latest","true"};
 
-        String blockResultBody = EthJsonRPC.JsonRPC("eth_getBlockByNumber",methodParams,"1",bcUrl);
-        try {
-            blockRet = mapper.readValue(blockResultBody, Block.class);
-        }catch (Exception e){
-            logger.error(e.getMessage());
-        }
-        return blockRet;
+        return EthJsonRPC.JsonRPC("eth_getBlockByNumber",methodParams,"1",getBcUrl());
+
+
+    }
+
+    @Override
+    public int getblockNumber() {
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String[] methodParams = {};
+
+        String resp = EthJsonRPC.JsonRPC("eth_blockNumber",methodParams,"1",getBcUrl());
+
+        return Integer.parseInt(resp.split("x")[1].replace("\"",""));
+
     }
 
     @Override
