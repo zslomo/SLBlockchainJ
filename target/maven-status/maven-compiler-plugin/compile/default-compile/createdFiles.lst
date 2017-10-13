@@ -13,7 +13,6 @@ science\bintan\blockchain\service\EthAccountService.class
 science\bintan\blockchain\controller\UserController.class
 science\bintan\blockchain\controller\EthController.class
 science\bintan\blockchain\service\UserServiceImpl.class
-science\bintan\blockchain\utils\EasyReqBody.class
 science\bintan\blockchain\entity\EthTransaction.class
 science\bintan\blockchain\repository\RegisterRepository.class
 science\bintan\blockchain\Application.class
@@ -22,3 +21,4 @@ science\bintan\blockchain\entity\User.class
 science\bintan\blockchain\service\UserService.class
 science\bintan\blockchain\entity\EthAccount.class
 science\bintan\blockchain\entity\BlockchainProperties.class
+science\bintan\blockchain\utils\SimpleReqBody.class

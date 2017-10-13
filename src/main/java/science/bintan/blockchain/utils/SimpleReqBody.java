@@ -13,5 +13,8 @@ public class SimpleReqBody {
     private String password;
     private String username;
 
+    private String fromAddr;
+    private String toAddr;
+
     private String errorMessage;
 }

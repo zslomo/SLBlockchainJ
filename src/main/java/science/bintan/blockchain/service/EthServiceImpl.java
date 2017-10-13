@@ -45,20 +45,23 @@ public class EthServiceImpl implements EthService {
 
     @Override
     public String minerStart(int threads) {
+        String[] methodParams = {String.valueOf(threads)};
 
         ObjectMapper mapper = new ObjectMapper();
 
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("jsonrpc", "2.0");
         params.put("method", "miner_start");
-        params.put("params", threads);
+        params.put("params", methodParams);
         params.put("id", 1);
 
         try {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            String requsetJson = mapper.writeValueAsString(params);
+            String requsetJson = mapper.writeValueAsString(params)
+                    .replace("[\"","[")
+                    .replace("\"]","]");
             HttpEntity<String> request = new HttpEntity<String>(requsetJson, headers);
 
             ResponseEntity<String> blockResult = restTemplate.exchange(getBcUrl(), HttpMethod.POST, request, String.class);
@@ -67,7 +70,7 @@ public class EthServiceImpl implements EthService {
 
                 JsonNode jsonNode = mapper.readTree(blockResultBody);
 
-                if(jsonNode.get("error") != null) return "#"+jsonNode.get("error").toString();
+                if (jsonNode.get("error") != null) return "#" + jsonNode.get("error").toString();
 
                 else return jsonNode.get("result").toString();
             }
@@ -194,22 +197,29 @@ public class EthServiceImpl implements EthService {
     }
 
     @Override
-    public String sendTansaction(String fromAddr, String fromPasswd,String toAddr) {
-        String unlockStatus = unlockEthAccount(fromAddr,fromPasswd);
-        if(unlockStatus.equals("ture")) {
-            String transactionStatus = EthJsonRPC.JsonRPCTransaction(
-                    fromAddr,
-                    toAddr,
-                    "0x76c0",
-                    "0x9184e72a000",
-                    "0x9184e72a",
-                    "",
-                    getBcUrl()
-            );
-            //TODO 重要
+    public String sendTansaction(
+            String fromAddr,
+            String fromPasswd,
+            String gas,
+            String gasPrice,
+            String value,
+            String toAddr,
+            String data) {
+        String unlockStatus = unlockEthAccount(fromAddr, fromPasswd);
+        if (unlockStatus.equals("true")) {
+            String transactionAddr = EthJsonRPC.JsonRPCTransaction(fromAddr, toAddr, gas, gasPrice, value, data, getBcUrl());
+            if(transactionAddr.charAt(0)=='#') return transactionAddr;
+            minerStart(1);
+            //TODO 正确的做法应该设置blockFliter 然后监听，直到区块被挖出来
+            try {
+                Thread.sleep(8000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            minerStop();
+            return transactionAddr;
 
-        }
-        else{
+        } else {
             return unlockStatus;
         }
 

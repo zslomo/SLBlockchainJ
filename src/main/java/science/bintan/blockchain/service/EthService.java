@@ -28,7 +28,7 @@ public interface EthService {
     String getblockNumber();
 
     //transaction
-    String sendTansaction(String fromAddr,String fromPasswd,String toAddr);
+    String sendTansaction(String fromAddr,String fromPasswd,String gas,String gasPrice,String value,String toAddr,String data);
     List<EthTransaction> getAllEthTransaction();
     List<EthTransaction> getEthTransactionBySender(String address);
     List<EthTransaction> getEthTransactionByreceiver(String address);
