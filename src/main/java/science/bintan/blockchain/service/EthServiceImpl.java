@@ -226,21 +226,6 @@ public class EthServiceImpl implements EthService {
     }
 
     @Override
-    public List<EthTransaction> getAllEthTransaction() {
-        return null;
-    }
-
-    @Override
-    public List<EthTransaction> getEthTransactionBySender(String address) {
-        return null;
-    }
-
-    @Override
-    public List<EthTransaction> getEthTransactionByreceiver(String address) {
-        return null;
-    }
-
-    @Override
     public String setNewBlocFilter() {
         String[] methodParams = {};
 
