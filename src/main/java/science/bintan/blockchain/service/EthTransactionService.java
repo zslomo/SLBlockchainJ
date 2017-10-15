@@ -11,11 +11,16 @@ public interface EthTransactionService {
 
     void save(EthTransaction ethTransaction);
 
-    String getByAddress(String addr);
+    EthTransaction getTransactionEntiyByAddress(String addr);
+
+    String getTransactionByAddress(String addr);
 
     List<EthTransaction> getAllEthTransaction();
 
     List<EthTransaction> getEthTransactionBySender(String address);
 
     List<EthTransaction> getEthTransactionByreceiver(String address);
+
+    String sendTansaction(String fromAddr,String fromPasswd,String gas,String gasPrice,String value,String toAddr,String data);
+
 }

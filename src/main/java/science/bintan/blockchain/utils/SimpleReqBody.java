@@ -16,5 +16,18 @@ public class SimpleReqBody {
     private String fromAddr;
     private String toAddr;
 
+    private String blockHash;
+    private String blockNumber;
+    private String gas;
+    private String gasPrice;
+    private String input;
+    private String nonce;
+    private String transactionIndex;
+    private String value;
+    private String data;
+    private String v;
+    private String r;
+    private String s;
+
     private String errorMessage;
 }

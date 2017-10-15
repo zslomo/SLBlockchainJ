@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import science.bintan.blockchain.entity.EthAccount;
 import science.bintan.blockchain.entity.EthTransaction;
 import science.bintan.blockchain.entity.User;
-import science.bintan.blockchain.service.EthService;
+import science.bintan.blockchain.service.*;
 import science.bintan.blockchain.utils.SimpleReqBody;
 /**
  * Created by lomo on 2017/10/11.
@@ -15,20 +15,30 @@ import science.bintan.blockchain.utils.SimpleReqBody;
 @RequestMapping("/eth")
 public class EthController {
     @Autowired
-    private EthService ethService;
+    private EthTransactionService ethTransactionService;
+
+    @Autowired
+    private EthAccountService ethAccountService;
+
+    @Autowired
+    private EthBlockService ethBlockService;
+
+    @Autowired
+    private EthMiningService ethMiningService;
+
 
     @CrossOrigin
     @RequestMapping(value = {"/blockByNumber",}, method = RequestMethod.POST)
     @ResponseBody
     public String getBlockByNumber(@RequestBody SimpleReqBody body) {
-        return ethService.getBlockByNumber(body.getNumber());
+        return ethBlockService.getBlockByNumber(body.getNumber());
     }
 
     @CrossOrigin
     @RequestMapping(value = {"/blockNumber",}, method = RequestMethod.GET)
     @ResponseBody
     public String getBlockNumber() {
-        return ethService.getblockNumber();
+        return ethBlockService.getblockNumber();
     }
 
     @CrossOrigin
@@ -37,27 +47,27 @@ public class EthController {
     public EthAccount personalNewAccount(@RequestBody SimpleReqBody body){
         User user =new User();
         user.setUsername(body.getUsername());
-        return ethService.newAccount(body.getPassword(),user);
+        return ethAccountService.newAccount(body.getPassword(),user);
     }
 
 
     @CrossOrigin
     @RequestMapping(value = {"/sendTransaction",}, method = RequestMethod.POST)
     @ResponseBody
-    public String sendTransaction(@RequestBody EthTransaction body){
-        return ethService.sendTansaction(
-                body.getFrom(),
+    public String sendTransaction(@RequestBody SimpleReqBody body){
+        return ethTransactionService.sendTansaction(
+                body.getFromAddr(),
                 body.getPassword(),
                 body.getGas(),
                 body.getGasPrice(),
                 body.getValue(),
-                body.getTo(),
+                body.getToAddr(),
                 body.getData());
     }
     @CrossOrigin
     @RequestMapping(value = {"/mining",}, method = RequestMethod.GET)
     @ResponseBody
     public String mining(){
-        return ethService.minerStart(1);
+        return ethMiningService.minerStart(1);
     }
 }
