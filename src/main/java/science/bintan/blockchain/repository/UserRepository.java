@@ -2,9 +2,12 @@ package science.bintan.blockchain.repository;
 
 
 import org.springframework.stereotype.Repository;
+import science.bintan.blockchain.entity.EthTransaction;
 import science.bintan.blockchain.entity.User;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.rest.core.annotation.RestResource;
+
+import java.util.List;
 
 /**
  * Created by lomo on 2017/10/6.
@@ -25,4 +28,5 @@ public interface UserRepository extends PagingAndSortingRepository<User, Long> {
     User findByUsername(String username);
 
     void deleteByUsername(String username);
+
 }

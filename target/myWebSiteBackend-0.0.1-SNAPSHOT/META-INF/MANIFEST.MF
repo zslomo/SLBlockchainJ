@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Implementation-Title: myWebSiteBackend
-Implementation-Version: 0.0.1-SNAPSHOT
-Built-By: lomo
-Implementation-Vendor-Id: science.bintan.blockchain
-Created-By: IntelliJ IDEA
-Build-Jdk: 1.8.0_131
-Main-Class: ${start-class}
-

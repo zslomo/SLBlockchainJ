@@ -1,6 +1,8 @@
 package science.bintan.blockchain.service;
 
 import java.util.List;
+
+import science.bintan.blockchain.entity.EthAccount;
 import science.bintan.blockchain.entity.User;
 
 /**
@@ -30,5 +32,6 @@ public interface UserService {
 
     String userPasswdModifyChain(String username, String modify);
 
+    List<EthAccount> getAllEthaccount(User user);
 
 }

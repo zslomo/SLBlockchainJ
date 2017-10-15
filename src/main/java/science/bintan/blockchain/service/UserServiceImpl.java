@@ -2,7 +2,9 @@ package science.bintan.blockchain.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import science.bintan.blockchain.entity.EthAccount;
 import science.bintan.blockchain.entity.User;
+import science.bintan.blockchain.repository.EthAccountRepository;
 import science.bintan.blockchain.repository.UserRepository;
 
 import java.util.List;
@@ -15,6 +17,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EthAccountRepository ethAccountRepository;
 
     @Override
     public void save(User user) {
@@ -76,5 +81,10 @@ public class UserServiceImpl implements UserService {
     public String userPasswdModifyChain(String username, String modify) {
         //TODO
         return null;
+    }
+
+    @Override
+    public List<EthAccount> getAllEthaccount(User user) {
+        return ethAccountRepository.findAllByUser(user);
     }
 }

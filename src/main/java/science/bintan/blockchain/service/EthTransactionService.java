@@ -11,7 +11,7 @@ public interface EthTransactionService {
 
     void save(EthTransaction ethTransaction);
 
-    EthTransaction getTransactionEntiyByAddress(String addr);
+    EthTransaction getTransactionEntityByAddress(String addr);
 
     String getTransactionByAddress(String addr);
 
@@ -19,8 +19,9 @@ public interface EthTransactionService {
 
     List<EthTransaction> getEthTransactionBySender(String address);
 
-    List<EthTransaction> getEthTransactionByreceiver(String address);
+    List<EthTransaction> getEthTransactionByReceiver(String address);
 
-    String sendTansaction(String fromAddr,String fromPasswd,String gas,String gasPrice,String value,String toAddr,String data);
+    String sendTransaction(String fromAddr,String fromPasswd,String gas,String gasPrice,String value,String toAddr,String data);
 
+    String sendTransactionWithoutMining(String fromAddr,String fromPasswd,String gas,String gasPrice,String value,String toAddr,String data);
 }
