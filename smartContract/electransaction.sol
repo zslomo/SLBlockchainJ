@@ -1,5 +1,11 @@
 pragma solidity ^0.4.0;
 
+/*
+*  以太坊智能合约，能源交易，购买人发起购买请求，有剩余电量的卖家可以选择卖出多少电量
+*  请求满足后买家付款，卖家发送电力
+*  @Auther：bintan
+*  @CreateDate：2017.10.28
+*/
 
 contract electransaction {
 
@@ -26,7 +32,7 @@ contract electransaction {
     function endStage() internal {
         stage = Stages.Finished;
     }
-    /**/
+
     modifier timedTransitions() {
         if (stage == Stages.Collecting &&
         now >= creationTime)
