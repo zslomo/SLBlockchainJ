@@ -1,5 +1,7 @@
 package science.bintan.blockchain.service;
 
+import org.web3j.protocol.core.methods.response.EthBlock;
+
 /**
  * Created by lomo on 2017/10/15.
  */

@@ -5,6 +5,6 @@ package science.bintan.blockchain.service;
  */
 public interface EthMiningService {
     String minerStart(int threads);
-    String minerStop(String filterId);
+    String minerStop();
     String getMiningStatus();
 }

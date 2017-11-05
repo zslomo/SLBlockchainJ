@@ -24,8 +24,7 @@ public class EthMiningServiceImpl implements EthMiningService{
 
     @Autowired
     private EthService ethService;
-    @Autowired
-    private EthFilterService ethFilterService;
+
     @Override
     public String minerStart(int threads) {
 
@@ -66,8 +65,7 @@ public class EthMiningServiceImpl implements EthMiningService{
     }
 
     @Override
-    public String minerStop(String filterId) {
-        ethFilterService.uninstallFilter(filterId);
+    public String minerStop() {
         String[] methodParams = {};
         return EthJsonRPC.JsonRPC("miner_stop", methodParams, "1", ethService.getBcUrl());
     }

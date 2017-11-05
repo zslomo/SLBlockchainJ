@@ -2,9 +2,7 @@ package science.bintan.blockchain.entity;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * Created by lomo on 2017/10/11.
@@ -15,6 +13,10 @@ import javax.persistence.Table;
 public class EthTransaction {
     @Id
     private String hash;
+    @ManyToOne
+    @JoinColumn(name = "address")
+    private EthAccount ethAccount;
+
     private String blockHash;
     private String blockNumber;
     private String fromAddr;
@@ -30,6 +32,9 @@ public class EthTransaction {
     private String r;
     private String s;
     private EthTransactionStatus status;
+
+    public EthTransaction() {
+    }
 
     public EthTransaction(String hash, String blockHash, String blockNumber, String fromAddr, String gas, String gasPrice, String input, String nonce, String toAddr, String transactionIndex, String value, String data, String v, String r, String s, EthTransactionStatus status) {
         this.hash = hash;

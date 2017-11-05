@@ -1,6 +1,7 @@
 package science.bintan.blockchain.service;
 
 import science.bintan.blockchain.entity.EthAccount;
+import science.bintan.blockchain.entity.EthTransaction;
 import science.bintan.blockchain.entity.User;
 
 import java.util.List;
@@ -22,5 +23,7 @@ public interface EthAccountService {
     String unlockEthAccount(String addr,String password);
     List<EthAccount> getEthAccount();
     String getBalance(String addr);
+
+    List<EthTransaction> getAllEthtransactions(EthAccount ethAccount);
 
 }

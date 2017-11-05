@@ -1,5 +1,6 @@
 package science.bintan.blockchain.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import science.bintan.blockchain.entity.BlockchainProperties;
@@ -12,16 +13,13 @@ import science.bintan.blockchain.utils.EthJsonRPC;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * Created by lomo on 2017/10/14.
  */
 @Service("EthTransactionService")
-public class EthTransactionServiceImpl implements EthTransactionService{
+public class EthTransactionServiceImpl implements EthTransactionService {
 
     @Autowired
     private EthService ethService;
@@ -39,7 +37,7 @@ public class EthTransactionServiceImpl implements EthTransactionService{
     private EthTransactionRepository ethTransactionRepository;
 
     @Override
-    public String sendTansaction(
+    public String sendTransaction(
             String fromAddr,
             String fromPasswd,
             String gas,
@@ -50,35 +48,46 @@ public class EthTransactionServiceImpl implements EthTransactionService{
         String unlockStatus = ethAccountService.unlockEthAccount(fromAddr, fromPasswd);
         if (unlockStatus.equals("true")) {
             String transactionAddr = EthJsonRPC.JsonRPCTransaction(fromAddr, toAddr, gas, gasPrice, value, data, ethService.getBcUrl());
-            EthTransaction ethTransaction = getTransactionEntiyByAddress(transactionAddr);
-            save(ethTransaction);
-            if(transactionAddr.charAt(0)=='#') return transactionAddr;
+            if (transactionAddr.charAt(0) == '#') return transactionAddr;
             ethMiningService.minerStart(1);
+
             String filterID = ethFilterService.setNewBlocFilter();
             /*
+            用下面注释掉的方法无法挖矿，即便给足够的延迟依然不行，会卡在准备阶段，非常吊诡
+            所以此处用了鱼唇的延迟大法，3s大约是启动+挖一块的时间
+            监听器于minerStart函数设置，minerStop函数销毁，暂时没有用，数据库不存放区块
+            区块信息只用eth接口访问，我们的目标是：“去中心化！”
+            */
+            try {
+                Thread.sleep(3000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            /*String BlockListStr = ethFilterService.getFilterChanges(filterID.replace("\"", ""));
+
+            *//*
              *监听是否产生新的区块，产生，或者8s后停止
              *TODO 如果是8s后仍未发现新的区块，没有返回值，无法获取这种情况
-            */
+            *//*
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
                 int times = 0;
-                public void run() {
-                    if(times>=80) timer.cancel();
 
-                    String BlockListStr = ethFilterService.getFilterChanges(filterID);
-                    if (!BlockListStr.isEmpty()) {
-                        String[] BlockList = BlockListStr.split(",");
-                        for (String e : BlockList) {
-                            save(getTransactionEntiyByAddress(e.replace("\"", "")));
-                        }
+                public void run() {
+                    if (times >= 8) timer.cancel();
+
+                    String BlockListStr = ethFilterService.getFilterChanges(filterID.replace("\"", ""));
+                    if (BlockListStr.length() > 2) {
                         timer.cancel();
                     }
                     times++;
 
                 }
-            }, 0,100);
-
-            ethMiningService.minerStop(filterID);
+            }, 3000, 1000);*/
+            ethFilterService.uninstallFilter(filterID);
+            ethMiningService.minerStop();
+            EthTransaction ethTransaction = getTransactionEntityByAddress(transactionAddr.replace("\"", ""));
+            save(ethTransaction);
             return transactionAddr;
 
         } else {
@@ -88,48 +97,68 @@ public class EthTransactionServiceImpl implements EthTransactionService{
     }
 
     @Override
+    public String sendTransactionWithoutMining(String fromAddr, String fromPasswd, String gas, String gasPrice, String value, String toAddr, String data) {
+        String unlockStatus = ethAccountService.unlockEthAccount(fromAddr, fromPasswd);
+        if (unlockStatus.equals("true")) {
+            String transactionAddr = EthJsonRPC.JsonRPCTransaction(fromAddr, toAddr, gas, gasPrice, value, data, ethService.getBcUrl());
+            if (transactionAddr.charAt(0) == '#') return transactionAddr;
+
+            EthTransaction ethTransaction = getTransactionEntityByAddress(transactionAddr.replace("\"", ""));
+            save(ethTransaction);
+            return transactionAddr;
+
+        } else {
+            return unlockStatus;
+        }
+    }
+
+    @Override
     public void save(EthTransaction ethTransaction) {
         ethTransactionRepository.save(ethTransaction);
     }
 
     /**
      * 这里非常不严谨，如果eth返回错误会GG,此处提供的addr是查询eth所得，链没挂一般不会崩
-     * @return EthTransactionEtity
+     *
+     * @return EthTransactionEntity
      */
     @Override
-    public EthTransaction getTransactionEntiyByAddress(String addr) {
+    public EthTransaction getTransactionEntityByAddress(String addr) {
         ObjectMapper mapper = new ObjectMapper();
         String transactionBody = getTransactionByAddress(addr);
+        EthTransaction ethTransaction;
         try {
-            Map m = mapper.readValue(transactionBody, Map.class);
-            EthTransactionStatus status = EthTransactionStatus.SUBMITED;
-            if(m.get("blockNumber") == null) status =EthTransactionStatus.PENDING;
+            Map<String, String> m = mapper.readValue(transactionBody, new TypeReference<Map<String, String>>() {
+            });
             return new EthTransaction(
-                    m.get("blockNumber").toString(),
-                    m.get("blockHash").toString(),
-                    m.get("from").toString(),
-                    m.get("gas").toString(),
-                    m.get("gasPrice").toString(),
-                    m.get("hash").toString(),
-                    m.get("input").toString(),
-                    m.get("nonce").toString(),
-                    m.get("to").toString(),
-                    m.get("transactionIndex").toString(),
-                    m.get("value").toString(),
-                    m.get("data").toString(),
-                    m.get("v").toString(),
-                    m.get("r").toString(),
-                    m.get("s").toString(),
-                    status
+                    m.get("hash"),
+                    m.get("blockHash"),
+                    m.get("blockNumber"),
+                    m.get("from"),
+                    m.get("gas"),
+                    m.get("gasPrice"),
+                    m.get("input"),
+                    m.get("nonce"),
+                    m.get("to"),
+                    m.get("transactionIndex"),
+                    m.get("value"),
+                    m.get("data"),
+                    m.get("v"),
+                    m.get("r"),
+                    m.get("s"),
+                    m.get("blockNumber") == null ? EthTransactionStatus.PENDING : EthTransactionStatus.SUBMITED
             );
-        }catch (Throwable e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
+
         return null;
     }
 
     /**
      * 提供api接口，暂时提供其他函数使用
+     *
      * @return EthTransactionEtity
      */
     @Override
@@ -144,7 +173,7 @@ public class EthTransactionServiceImpl implements EthTransactionService{
 
     @Override
     public List<EthTransaction> getAllEthTransaction() {
-        return null;
+        return (List<EthTransaction>)ethTransactionRepository.findAll();
     }
 
     @Override
@@ -153,7 +182,7 @@ public class EthTransactionServiceImpl implements EthTransactionService{
     }
 
     @Override
-    public List<EthTransaction> getEthTransactionByreceiver(String address) {
+    public List<EthTransaction> getEthTransactionByReceiver(String address) {
         return null;
     }
 }

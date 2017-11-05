@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import science.bintan.blockchain.entity.BlockchainProperties;
 import science.bintan.blockchain.entity.EthAccount;
+import science.bintan.blockchain.entity.EthTransaction;
 import science.bintan.blockchain.entity.User;
 import science.bintan.blockchain.repository.EthAccountRepository;
+import science.bintan.blockchain.repository.EthTransactionRepository;
 import science.bintan.blockchain.utils.EthJsonRPC;
 
 import java.util.List;
@@ -27,6 +29,9 @@ public class EthAccountServiceImpl implements EthAccountService{
 
     @Autowired
     private EthAccountRepository ethAccountRepository;
+
+    @Autowired
+    private EthTransactionRepository ethTransactionRepository;
 
 
     @Override
@@ -101,5 +106,10 @@ public class EthAccountServiceImpl implements EthAccountService{
         String[] methodParams = {addr, "latest"};
 
         return EthJsonRPC.JsonRPC("eth_getBalance", methodParams, "1", ethService.getBcUrl());
+    }
+
+    @Override
+    public List<EthTransaction> getAllEthtransactions(EthAccount ethAccount) {
+        return ethTransactionRepository.findAllByEthAccount(ethAccount);
     }
 }

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.web3j.protocol.core.methods.response.EthBlock;
 import science.bintan.blockchain.entity.BlockchainProperties;
 import science.bintan.blockchain.utils.EthJsonRPC;
 
@@ -19,7 +20,6 @@ public class EthBlockServiceImpl implements EthBlockService{
 
     @Autowired
     private EthService ethService;
-
 
     @Override
     public String getBlockByNumber(int number) {
