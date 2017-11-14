@@ -7,6 +7,7 @@ pragma solidity ^0.4.0;
 *  @CreateDate：2017.10.28
 */
 
+
 contract electransaction {
 
     enum Stages {
@@ -132,5 +133,33 @@ contract electransaction {
     atStage(Stages.Finished)
     {
 
+    }
+    struct Product{
+        address seller;    //卖家
+        uint electAccount; //电量
+        byte6 electTpye;   //类型
+        byte32 detail;     //详情
+        uint unitPrice;  //电价
+    }
+    mapping(address => uint) sellerPublish;
+    Product[] products;
+    function electPublish(address _seller, uint _electAccount,byte6 _elecTpye,byte32 _detail,uint _uintPrice){
+        Product product;
+        product.seller = _seller;
+        product.electAccount = _electAccount;
+        product.elecTpye = _elecTpye;
+        product.detail = _detail;
+        product.uintPrice = _uintPrice;
+        products[products.length++] = product;
+        sellerPublish[_seller] = products.length;
+    }
+
+    function buy(address _seller,uint _buyElectAccount){
+        if(product.elecAccount < _buyElectAccount) throw;
+
+        Product product = Products[sellerPublish[_seller]];
+        product.elecAccount -= _buyElectAccount;
+        uint sellerPaid = product.unitPrice * _buyElectAccount;
+        product.seller.transfer(sellerPaid);
     }
 }
