@@ -34,16 +34,6 @@ contract electransaction {
         stage = Stages.Finished;
     }
 
-    modifier timedTransitions() {
-        if (stage == Stages.Collecting &&
-        now >= creationTime)
-        nextStage();
-        if (stage == Stages.Paying &&
-        now >= creationTime)
-        nextStage();
-        // 按照交易过度阶段
-        _;
-    }
 
     // 该修饰符在功能完成后进入下一个阶段。
     modifier transitionNext()
@@ -53,12 +43,16 @@ contract electransaction {
     }
 
     event TokenTransfer(address backer, uint amount);
-
+    
     address public buyer; //买家
     uint public electGoal;//购买电力数
-    uint public electRaised;//已确定的卖家卖出店里总和（筹集的电力数）
-    uint public elecPrice;//买家出价(单价)
-    Seller[] public sellers;//卖家集合
+    uint public  electRaised;//已确定的卖家卖出店里总和（筹集的电力数）
+    uint public electPrice;//买家出价(单价)
+    uint public electNumSeller;
+    bytes public electType;
+    
+
+    
 
     /* 卖家的数据结构 */
     struct Seller {
@@ -66,100 +60,128 @@ contract electransaction {
     uint elecAmount;
     }
 
-    /*构造函数*/
-    function electransaction(address _buyer, uint _electGoal, uint _electRaised, uint _electPrice, uint _electNumSeller){
-        buyer = _buyer;
-        electGoal = _electGoal;
-        electRaised = _electRaised;
-        electPrice = _electPrice;
-        electNumSeller = _electNumSeller;
-    }
-    //TODO 需要获得请求买电人的账户总额
-    function checkAccount(uint _account)
+    Seller[] public sellers;//卖家集合
+   
+   
+    function  ReleaseElectransaction(uint _electGoal, uint _electPrice, bytes _type )
     atStage(Stages.New)
     {
-        if (_account > elecPrice * electGoal)
+        
+            buyer = msg.sender;
+            electGoal = _electGoal;
+            electRaised = 0;
+            electPrice = _electPrice;
+            electNumSeller = 0;
+            electType = _type;
+        
+        
         nextStage();
-        else
-        endStage();
-
     }
+    //TODO 需要获得请求买电人的账户总额
+    // function checkAccount(uint _account)
+    // atStage(Stages.New)
+    // {
+    //     if (_account > releaseBuyerMap[msg.sender].electPrice * releaseBuyerMap[msg.sender].electGoal)
+    //     nextStage();
+    //     else
+    //     endStage();
 
-    /*没有名称的函数是每当有人向合同发送资金时调用的默认函数*/
-    function()
+    // }
+
+    
+    function sell(uint _elects)
+    public
     payable
-    timedTransitions
     atStage(Stages.Collecting)
     {
-        uint elects = msg.value;
-        sellers[sellers.length++] = Seller({addr : msg.sender, amount : elects});
-        electRaised += elects;
-        TokenTransfer(msg.sender, elects);
+        sellers.push(Seller({
+            addr : msg.sender, 
+            elecAmount : _elects
+        })) ;
+        electRaised += _elects;
         if (electRaised >= electGoal)
         nextStage();
     }
 
     /* 检查目标是否达到，达到就结束 */
     function checkGoalReached()
+    payable
     atStage(Stages.Paying)
     {
         if (electRaised >= electGoal) {
-            buyer.transfer(electRaised);
-            TokenTransfer(buyer, electRaised);
+            //buyer.transfer(electRaised);
+            //TokenTransfer(buyer, electRaised);
+            nextStage();
         }
-        nextStage();
+        
     }
     /*买家付钱*/
     function pay()
     payable
-    timedTransitions
     atStage(Stages.Paying)
     {
 
         if (msg.sender == buyer) {
-            uint amount = msg.value;
-            amountPay += amount;
 
-            for (uint i = 0; i < lenders.length; ++i) {
-                sellers[i].addr.transfer(sellers[i].elecAmount * elecPrice);
+            for (uint i = 0; i < sellers.length; ++i) {
+                //sellers[i].addr.transfer(sellers[i].elecAmount * electPrice);
             }
 
-            nextStage();
-
         }
+        checkGoalReached();
 
     }
+
     function clean()
-    atStage(Stages.Finished)
-    {
+    atStage(Stages.Finished) {
 
     }
-    struct Product{
-        address seller;    //卖家
-        uint electAccount; //电量
-        byte6 electTpye;   //类型
-        byte32 detail;     //详情
-        uint unitPrice;  //电价
+
+    struct Product {
+    address seller;    //卖家
+    uint electAccount; //电量
+    bytes electTpye;   //类型
+    bytes detail;     //详情
+    uint unitPrice;  //电价
     }
+    
+    uint80 constant None = uint80(0); 
+
     mapping(address => uint) sellerPublish;
+
     Product[] products;
-    function electPublish(address _seller, uint _electAccount,byte6 _elecTpye,byte32 _detail,uint _uintPrice){
-        Product product;
-        product.seller = _seller;
-        product.electAccount = _electAccount;
-        product.elecTpye = _elecTpye;
-        product.detail = _detail;
-        product.uintPrice = _uintPrice;
-        products[products.length++] = product;
-        sellerPublish[_seller] = products.length;
+    // notice One person publish multiple transactions is not support yet
+    function electPublish(uint _electAccount, bytes _elecTpye, bytes _detail, uint _uintPrice) {
+        products.push(Product({
+            seller : msg.sender,
+            electAccount : _electAccount,
+            electTpye : _elecTpye,
+            detail : _detail,
+            unitPrice : _uintPrice
+        }));
+    
+        sellerPublish[msg.sender] = products.length - 1;
     }
 
-    function buy(address _seller,uint _buyElectAccount){
-        if(product.elecAccount < _buyElectAccount) throw;
-
-        Product product = Products[sellerPublish[_seller]];
-        product.elecAccount -= _buyElectAccount;
-        uint sellerPaid = product.unitPrice * _buyElectAccount;
-        product.seller.transfer(sellerPaid);
+    function buy(address _seller,uint _buyElectAccount) public payable returns (uint){
+        if (products[sellerPublish[_seller]].electAccount < _buyElectAccount) throw;
+        products[sellerPublish[_seller]].electAccount -= _buyElectAccount;
+        
+        uint sellerPaid = products[sellerPublish[_seller]].unitPrice * _buyElectAccount;
+        products[sellerPublish[_seller]].seller.transfer(sellerPaid);
+        
+        return products[sellerPublish[_seller]].electAccount;
     }
+    function getProductsLength() public returns (uint){
+        return products.length;
+    }
+    function getProducts(uint index) public returns (address,uint,bytes,bytes,uint) {
+        return (products[index].seller,products[index].electAccount,products[index].electTpye,products[index].detail,products[index].unitPrice);
+    }
+    function deleteProduct() returns(bool) {
+        if(sellerPublish[msg.sender] == None) throw;
+        delete products[sellerPublish[msg.sender]];
+        return true;
+    }
+    
 }
